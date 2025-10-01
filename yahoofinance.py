@@ -330,11 +330,14 @@ if df is not None:
 
     # --- Exportación de resultados ---
     st.subheader("📤 Exportar Resultados")
-    export_format = st.radio("Formato de exportación", ["CSV", "Excel"])
-    if st.button("Generar archivo"):
-        towrite = io.BytesIO()
+
+    if df is not None and not df.empty:
+        export_format = st.radio("Formato de exportación", ["CSV", "Excel"])
+        
+        # Generar archivo según el formato seleccionado
         if export_format == "CSV":
-            df.to_csv(towrite, index=False)
+            towrite = io.BytesIO()
+            df.to_csv(towrite, index=False, encoding='utf-8')
             towrite.seek(0)
             st.download_button(
                 label="📥 Descargar CSV",
@@ -343,6 +346,7 @@ if df is not None:
                 mime="text/csv"
             )
         else:
+            towrite = io.BytesIO()
             with pd.ExcelWriter(towrite, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Datos')
             towrite.seek(0)
@@ -352,6 +356,8 @@ if df is not None:
                 file_name="datos_filtrados.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+    else:
+        st.warning("No hay datos disponibles para exportar.")
 
 else:
     st.info("👆 Selecciona una fuente de datos en la barra lateral para comenzar.")
