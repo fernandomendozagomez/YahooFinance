@@ -332,29 +332,39 @@ if df is not None:
     st.subheader("📤 Exportar Resultados")
 
     if df is not None and not df.empty:
-        export_format = st.radio("Formato de exportación", ["CSV", "Excel"])
-        
-        # Generar archivo según el formato seleccionado
-        if export_format == "CSV":
-            towrite = io.BytesIO()
-            df.to_csv(towrite, index=False, encoding='utf-8')
-            towrite.seek(0)
+        # Función para convertir DataFrame a Excel con caché
+        @st.cache_data
+        def convert_df_to_excel(df):
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Datos')
+            return output.getvalue()
+
+        # Función para convertir DataFrame a CSV
+        def convert_df_to_csv(df):
+            return df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+
+        # Mostrar botones lado a lado
+        col1, col2 = st.columns(2)
+
+        with col1:
+            csv_data = convert_df_to_csv(df)
             st.download_button(
                 label="📥 Descargar CSV",
-                data=towrite,
+                data=csv_data,
                 file_name="datos_filtrados.csv",
-                mime="text/csv"
+                mime="text/csv",
+                use_container_width=True
             )
-        else:
-            towrite = io.BytesIO()
-            with pd.ExcelWriter(towrite, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name='Datos')
-            towrite.seek(0)
+
+        with col2:
+            excel_data = convert_df_to_excel(df)
             st.download_button(
                 label="📥 Descargar Excel",
-                data=towrite,
+                data=excel_data,
                 file_name="datos_filtrados.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
             )
     else:
         st.warning("No hay datos disponibles para exportar.")
