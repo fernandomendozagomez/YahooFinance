@@ -34,3 +34,5 @@ Una aplicación interactiva desarrollada con **Streamlit** que permite a los usu
    ```bash
    git clone https://github.com/tu-usuario/tu-repositorio.git
    cd tu-repositorio
+   pip install streamlit yfinance pandas plotly openpyxl
+   python -m streamlit run app.py
